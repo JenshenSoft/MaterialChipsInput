@@ -16,7 +16,7 @@
         app:filterable_list_selectable="false"
         app:filterable_list_AddAllButton_enable="true"
         app:hint="Enter a name"
-        app:maxRows="3" />
+        app:maxRows="10" />
 
     <Button
         android:id="@+id/validate"
