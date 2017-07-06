@@ -15,6 +15,7 @@
         app:chip_deletable="true"
         app:filterable_list_selectable="false"
         app:filterable_list_AddAllButton_enable="true"
+        app:collapsedButton_enable="true"
         app:hint="Enter a name"
         app:maxRows="10" />
 

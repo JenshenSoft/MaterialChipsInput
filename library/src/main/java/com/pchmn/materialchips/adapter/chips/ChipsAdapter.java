@@ -2,6 +2,7 @@ package com.pchmn.materialchips.adapter.chips;
 
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.InputType;
@@ -20,6 +21,7 @@ import com.pchmn.materialchips.R;
 import com.pchmn.materialchips.adapter.EditTextViewHolder;
 import com.pchmn.materialchips.adapter.ItemViewHolder;
 import com.pchmn.materialchips.adapter.chips.items.ChipItem;
+import com.pchmn.materialchips.adapter.chips.items.CollapseButtonItem;
 import com.pchmn.materialchips.adapter.chips.items.EditChipItem;
 import com.pchmn.materialchips.adapter.chips.items.Item;
 import com.pchmn.materialchips.model.ChipInterface;
@@ -44,14 +46,20 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private String mHintLabel;
     private ChipsInputEditText mEditText;
     private RecyclerView mRecycler;
-    private boolean collapsed;
+    private EditChipItem editChipItem;
+    @Nullable
+    private CollapseButtonItem collapseButtonItem;
 
-    public ChipsAdapter(Context context, ChipsInput chipsInput, RecyclerView recycler) {
-        mContext = context;
-        mChipsInput = chipsInput;
-        mRecycler = recycler;
-        mHintLabel = mChipsInput.getHint();
-        mEditText = mChipsInput.getEditText();
+    public ChipsAdapter(Context context, ChipsInput chipsInput, RecyclerView recycler, boolean enableCollapsedButton) {
+        this.mContext = context;
+        this.mChipsInput = chipsInput;
+        this.mRecycler = recycler;
+        if (enableCollapsedButton) {
+            collapseButtonItem = new CollapseButtonItem();
+        }
+        this.mHintLabel = mChipsInput.getHint();
+        this.mEditText = mChipsInput.getEditText();
+        setHasStableIds(true);
         initEditText();
     }
 
@@ -84,14 +92,16 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
+        Item item = mChipList.get(position);
         switch (mChipList.get(position).getType()) {
             case Item.TYPE_EDIT_TEXT:
                 bindEditText();
                 break;
             case Item.TYPE_HIDE_BUTTON_ITEM:
+                bindCollapseButton((CollapseButtonItem) item, (CollapseItemsViewHolder) holder);
                 break;
             default:
-                bindChip(position, (ItemViewHolder) holder);
+                bindChip(((ChipItem) item).getChip(), (ItemViewHolder) holder);
                 break;
         }
     }
@@ -124,7 +134,13 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             // reset text
             mEditText.setText(null);
             // refresh data
-            notifyItemInserted(mChipList.size());
+            mChipList.remove(editChipItem);
+            if (collapseButtonItem != null) {
+                mChipList.remove(collapseButtonItem);
+                mChipList.add(collapseButtonItem);
+            }
+            mChipList.add(editChipItem);
+            notifyDataSetChanged();
         }
     }
 
@@ -147,6 +163,12 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         // reset text
         mEditText.setText(null);
         // refresh data
+        mChipList.remove(editChipItem);
+        if (collapseButtonItem != null) {
+            mChipList.remove(collapseButtonItem);
+            mChipList.add(collapseButtonItem);
+        }
+        mChipList.add(editChipItem);
         notifyDataSetChanged();
     }
 
@@ -281,7 +303,10 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
             }
         });
-        mChipList.add(0, new EditChipItem());
+        if (editChipItem == null) {
+            editChipItem = new EditChipItem();
+            mChipList.add(editChipItem);
+        }
     }
 
     private void autofitEditText() {
@@ -317,7 +342,7 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         });
     }
 
-    private void handleClickOnEditText(final ChipInterface chipInterface, ChipView chipView, final int position) {
+    private void handleClickOnEditText(final ChipInterface chipInterface, ChipView chipView) {
         // delete chip
         chipView.setOnDeleteClicked(new View.OnClickListener() {
             @Override
@@ -351,10 +376,6 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
     }
 
-    private boolean isShouldAddCollapsedButton() {
-        return mChipList.size() > 1;
-    }
-
     private void bindEditText() {
         if (mChipList.isEmpty()) {
             mEditText.setHint(mHintLabel);
@@ -363,19 +384,34 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         autofitEditText();
     }
 
-    private void bindCollapseButton(CollapseItemsViewHolder holder) {
-        /*holder.bind(collapsed, mChipList, new View.OnClickListener() {
+    private void bindCollapseButton(final CollapseButtonItem collapseButtonItem, CollapseItemsViewHolder holder) {
+        holder.bind(collapseButtonItem, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                collapsed = !collapsed;
-                notifyItemRangeChanged(0, getItemCount() - 1);
+                collapseButtonItem.setCollapsed(!collapseButtonItem.isCollapsed());
+                if (collapseButtonItem.isCollapsed()) {
+                    List<ChipInterface> chipItems = new ArrayList<>();
+                    List<ChipInterface> chipList = getChipList();
+                    for (int i = 1; i < chipList.size(); i++) {
+                        ChipInterface chipInterface = chipList.get(i);
+                        ChipItem chipItem = getChipItem(chipInterface.getId());
+                        mChipList.remove(chipItem);
+                        chipItems.add(chipItem.getChip());
+                    }
+                    if (!chipItems.isEmpty()) {
+                        collapseButtonItem.setItems(chipItems);
+                    }
+                } else {
+                    addChips(collapseButtonItem.getItems());
+                }
+                notifyDataSetChanged();
             }
-        });*/
+        });
     }
 
-    private void bindChip(int position, ItemViewHolder itemViewHolder) {
-        // itemViewHolder.chipView.inflate(getItem(position));
+    private void bindChip(ChipInterface chipInterface, ItemViewHolder itemViewHolder) {
+        itemViewHolder.chipView.inflate(chipInterface);
         // handle click
-        // handleClickOnEditText(itemViewHolder.chipView, position);
+        handleClickOnEditText(chipInterface, itemViewHolder.chipView);
     }
 }

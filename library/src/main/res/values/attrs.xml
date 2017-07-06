@@ -24,6 +24,7 @@
         <attr name="chip_deleteIconColor" format="color" />
         <attr name="chip_backgroundColor" format="color" />
         <attr name="showChipDetailed" format="boolean" />
+        <attr name="collapsedButton_enable" format="boolean" />
         <attr name="chip_detailed_textColor" format="color" />
         <attr name="chip_detailed_backgroundColor" format="color" />
         <attr name="chip_detailed_deleteIconColor" format="color" />

@@ -6,9 +6,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.pchmn.materialchips.R;
-import com.pchmn.materialchips.model.ChipInterface;
-
-import java.util.List;
+import com.pchmn.materialchips.adapter.chips.items.CollapseButtonItem;
 
 public class CollapseItemsViewHolder extends RecyclerView.ViewHolder {
 
@@ -21,10 +19,10 @@ public class CollapseItemsViewHolder extends RecyclerView.ViewHolder {
         collapseChipsView = (TextView) itemView.findViewById(R.id.text);
     }
 
-    void bind(boolean collapse, List<ChipInterface> chipInterfaces, View.OnClickListener onClickListener) {
+    void bind(CollapseButtonItem item, View.OnClickListener onClickListener) {
         collapseChipsView.setOnClickListener(onClickListener);
-        if (collapse) {
-            collapseChipsView.setText(context.getString(R.string.show_more, chipInterfaces.size() - 1));
+        if (item.isCollapsed()) {
+            collapseChipsView.setText(context.getString(R.string.show_more, item.getItems().size()));
         } else {
             collapseChipsView.setText(context.getString(R.string.show_less));
         }

@@ -54,6 +54,7 @@ public class ChipsInput extends ScrollViewMaxHeight {
     private ColorStateList mChipBackgroundColor;
     private boolean mShowChipDetailed = true;
     private boolean mFilterableListSelectable = false;
+    private boolean collapsedButtonEnable = false;
     private ColorStateList mChipDetailedTextColor;
     private ColorStateList mChipDetailedDeleteIconColor;
     private ColorStateList mChipDetailedBackgroundColor;
@@ -113,6 +114,7 @@ public class ChipsInput extends ScrollViewMaxHeight {
                 // chip delete icon
                 mChipDeletable = a.getBoolean(R.styleable.ChipsInput_chip_deletable, false);
                 mChipDeleteIconColor = a.getColorStateList(R.styleable.ChipsInput_chip_deleteIconColor);
+                collapsedButtonEnable = a.getBoolean(R.styleable.ChipsInput_collapsedButton_enable, false);
                 int deleteIconId = a.getResourceId(R.styleable.ChipsInput_chip_deleteIcon, NONE);
                 if(deleteIconId != NONE) mChipDeleteIcon = ContextCompat.getDrawable(mContext, deleteIconId);
                 // chip background color
@@ -135,7 +137,7 @@ public class ChipsInput extends ScrollViewMaxHeight {
         }
 
         // adapter
-        mChipsAdapter = new ChipsAdapter(mContext, this, mRecyclerView);
+        mChipsAdapter = new ChipsAdapter(mContext, this, mRecyclerView, collapsedButtonEnable);
         ChipsLayoutManager chipsLayoutManager = ChipsLayoutManager.newBuilder(mContext)
                 .setOrientation(ChipsLayoutManager.HORIZONTAL)
                 .build();
