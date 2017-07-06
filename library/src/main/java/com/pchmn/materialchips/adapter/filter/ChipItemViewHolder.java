@@ -1,4 +1,4 @@
-package com.pchmn.materialchips.adapter.holders;
+package com.pchmn.materialchips.adapter.filter;
 
 import android.content.res.ColorStateList;
 import android.graphics.PorterDuff;

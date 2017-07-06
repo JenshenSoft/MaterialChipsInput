@@ -1,4 +1,4 @@
-package com.pchmn.materialchips.adapter;
+package com.pchmn.materialchips.adapter.chips;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;

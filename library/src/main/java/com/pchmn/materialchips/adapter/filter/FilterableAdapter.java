@@ -1,4 +1,4 @@
-package com.pchmn.materialchips.adapter;
+package com.pchmn.materialchips.adapter.filter;
 
 
 import android.content.Context;
@@ -12,8 +12,6 @@ import android.widget.Filterable;
 
 import com.pchmn.materialchips.ChipsInput;
 import com.pchmn.materialchips.R;
-import com.pchmn.materialchips.adapter.holders.ChipItemViewHolder;
-import com.pchmn.materialchips.adapter.holders.MergedChipItemViewHolder;
 import com.pchmn.materialchips.model.ChipInterface;
 import com.pchmn.materialchips.model.MergedChip;
 import com.pchmn.materialchips.util.LetterTileProvider;

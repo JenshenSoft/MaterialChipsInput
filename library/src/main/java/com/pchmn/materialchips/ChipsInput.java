@@ -13,7 +13,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import com.beloo.widget.chipslayoutmanager.ChipsLayoutManager;
-import com.pchmn.materialchips.adapter.ChipsAdapter;
+import com.pchmn.materialchips.adapter.chips.ChipsAdapter;
 import com.pchmn.materialchips.model.Chip;
 import com.pchmn.materialchips.model.ChipInterface;
 import com.pchmn.materialchips.util.ActivityUtil;
@@ -192,14 +192,6 @@ public class ChipsInput extends ScrollViewMaxHeight {
 
     public void removeChipById(Object id) {
         mChipsAdapter.removeChipById(id);
-    }
-
-    public void removeChipByLabel(String label) {
-        mChipsAdapter.removeChipByLabel(label);
-    }
-
-    public void removeChipByInfo(String info) {
-        mChipsAdapter.removeChipByInfo(info);
     }
 
     public ChipView getChipView() {

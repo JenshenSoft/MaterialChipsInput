@@ -9,7 +9,7 @@ public class ItemViewHolder extends RecyclerView.ViewHolder {
 
     final ChipView chipView;
 
-    ItemViewHolder(View view) {
+    public ItemViewHolder(View view) {
         super(view);
         chipView = (ChipView) view;
     }

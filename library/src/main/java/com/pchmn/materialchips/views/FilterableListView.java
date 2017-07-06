@@ -19,7 +19,7 @@ import android.widget.RelativeLayout;
 import com.pchmn.materialchips.ChipsInput;
 import com.pchmn.materialchips.R;
 import com.pchmn.materialchips.R2;
-import com.pchmn.materialchips.adapter.FilterableAdapter;
+import com.pchmn.materialchips.adapter.filter.FilterableAdapter;
 import com.pchmn.materialchips.model.ChipInterface;
 import com.pchmn.materialchips.util.ViewUtil;
 

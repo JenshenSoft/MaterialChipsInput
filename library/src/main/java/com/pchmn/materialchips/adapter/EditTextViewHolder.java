@@ -8,7 +8,7 @@ public class EditTextViewHolder extends RecyclerView.ViewHolder {
 
     final EditText editText;
 
-    EditTextViewHolder(View view) {
+    public EditTextViewHolder(View view) {
         super(view);
         editText = (EditText) view;
     }
