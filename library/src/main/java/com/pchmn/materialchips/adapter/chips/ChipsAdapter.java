@@ -135,7 +135,7 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             mEditText.setText(null);
             // refresh data
             mChipList.remove(editChipItem);
-            if (collapseButtonItem != null) {
+            if (collapseButtonItem != null && getChipList().size() > 1) {
                 mChipList.remove(collapseButtonItem);
                 mChipList.add(collapseButtonItem);
             }
@@ -164,7 +164,7 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         mEditText.setText(null);
         // refresh data
         mChipList.remove(editChipItem);
-        if (collapseButtonItem != null) {
+        if (collapseButtonItem != null && getChipList().size() > 1) {
             mChipList.remove(collapseButtonItem);
             mChipList.add(collapseButtonItem);
         }
