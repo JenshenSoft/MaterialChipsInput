@@ -261,10 +261,11 @@ public class ChipsInput extends ScrollViewMaxHeight {
             }
             // show filterable list
             if(mFilterableListView != null) {
-                if(text.length() > 0)
+                if(text.length() > 0) {
                     mFilterableListView.filterList(text);
-                else
+                } else {
                     mFilterableListView.fadeOut();
+                }
             }
         }
     }
