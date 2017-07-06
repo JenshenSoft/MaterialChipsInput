@@ -14,6 +14,8 @@
         <item>#ad62a7</item>
     </array>
 
+    <string name="add_all">Add all</string>
+
     <!-- The default letter tile text size -->
     <dimen name="tile_letter_font_size">17sp</dimen>
     <!-- The deafult tile size -->

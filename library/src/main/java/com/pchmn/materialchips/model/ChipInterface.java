@@ -11,4 +11,6 @@ public interface ChipInterface {
     Drawable getAvatarDrawable();
     String getLabel();
     String getInfo();
+    boolean isSelected();
+    void setSelected(boolean selected);
 }

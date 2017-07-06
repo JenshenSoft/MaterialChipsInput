@@ -7,6 +7,13 @@
     android:background="@android:color/white"
     android:foreground="?attr/selectableItemBackground">
 
+    <CheckBox
+        android:id="@+id/selected"
+        android:layout_gravity="center"
+        android:layout_marginLeft="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
     <!-- avatar -->
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/avatar"

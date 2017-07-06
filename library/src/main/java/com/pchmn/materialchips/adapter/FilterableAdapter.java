@@ -5,28 +5,27 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.PorterDuff;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.pchmn.materialchips.ChipsInput;
 import com.pchmn.materialchips.R;
 import com.pchmn.materialchips.model.ChipInterface;
+import com.pchmn.materialchips.model.MergedChip;
+import com.pchmn.materialchips.util.ChipUtil;
 import com.pchmn.materialchips.util.ColorUtil;
 import com.pchmn.materialchips.util.LetterTileProvider;
-import com.pchmn.materialchips.util.ViewUtil;
 
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
@@ -37,12 +36,15 @@ import static android.view.View.GONE;
 public class FilterableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements Filterable {
 
     private static final String TAG = FilterableAdapter.class.toString();
+    private static final int TYPE_MERGED_CHIP = 0;
+    private static final int TYPE_CHIP = 1;
     // context
     private Context mContext;
     // list
     private List<ChipInterface> mOriginalList = new ArrayList<>();
     private List<ChipInterface> mChipList = new ArrayList<>();
     private List<ChipInterface> mFilteredList = new ArrayList<>();
+    private List<ChipInterface> mSelectableItems = new ArrayList<>();
     private ChipFilter mFilter;
     private ChipsInput mChipsInput;
     private LetterTileProvider mLetterTileProvider;
@@ -50,6 +52,7 @@ public class FilterableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private ColorStateList mTextColor;
     // recycler
     private RecyclerView mRecyclerView;
+    private final boolean mSelectable;
     // sort
     private Comparator<ChipInterface> mComparator;
     private Collator mCollator;
@@ -60,9 +63,11 @@ public class FilterableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                              List<? extends ChipInterface> chipList,
                              ChipsInput chipsInput,
                              ColorStateList backgroundColor,
-                             ColorStateList textColor) {
+                             ColorStateList textColor,
+                             boolean selectable) {
         mContext = context;
         mRecyclerView = recyclerView;
+        mSelectable = selectable;
         mCollator = Collator.getInstance(Locale.getDefault());
         mCollator.setStrength(Collator.PRIMARY);
         mComparator = new Comparator<ChipInterface>() {
@@ -73,8 +78,8 @@ public class FilterableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         };
         // remove chips that do not have label
         Iterator<? extends ChipInterface> iterator = chipList.iterator();
-        while(iterator.hasNext()) {
-            if(iterator.next().getLabel() == null)
+        while (iterator.hasNext()) {
+            if (iterator.next().getLabel() == null)
                 iterator.remove();
         }
         sortList(chipList);
@@ -104,76 +109,168 @@ public class FilterableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         });
     }
 
-    private class ItemViewHolder extends RecyclerView.ViewHolder {
+    private class MergedChipItemViewHolder extends RecyclerView.ViewHolder {
 
+        private CircleImageView mAvatar0;
+        private CircleImageView mAvatar1;
+        private CircleImageView mAvatar2;
+        private TextView mLabel;
+        private TextView mInfo;
+
+        MergedChipItemViewHolder(View view) {
+            super(view);
+            mAvatar0 = (CircleImageView) view.findViewById(R.id.avatar0);
+            mAvatar1 = (CircleImageView) view.findViewById(R.id.avatar1);
+            mAvatar2 = (CircleImageView) view.findViewById(R.id.avatar2);
+            mLabel = (TextView) view.findViewById(R.id.label);
+            mInfo = (TextView) view.findViewById(R.id.info);
+        }
+
+        public void bindInfo(final MergedChip chip) {
+            // avatar
+            Iterator<ChipInterface> chipInterfaces = chip.getChips().subList(0, 3).iterator();
+            ChipInterface nextChip = chipInterfaces.next();
+            ChipUtil.addAvatar(mAvatar0, nextChip, mLetterTileProvider, mChipsInput.chipHasAvatarIcon());
+            nextChip = chipInterfaces.next();
+            ChipUtil.addAvatar(mAvatar1, nextChip, mLetterTileProvider, mChipsInput.chipHasAvatarIcon());
+            nextChip = chipInterfaces.next();
+            ChipUtil.addAvatar(mAvatar2, nextChip, mLetterTileProvider, mChipsInput.chipHasAvatarIcon());
+
+            // label
+            mLabel.setText(chip.getLabel());
+
+            // info
+            if (chip.getInfo() != null) {
+                mInfo.setVisibility(View.VISIBLE);
+                mInfo.setText(chip.getInfo());
+            } else {
+                mInfo.setVisibility(GONE);
+            }
+
+            // colors
+            if (mBackgroundColor != null)
+                itemView.getBackground().setColorFilter(mBackgroundColor.getDefaultColor(), PorterDuff.Mode.SRC_ATOP);
+            if (mTextColor != null) {
+                mLabel.setTextColor(mTextColor);
+                mInfo.setTextColor(ColorUtil.alpha(mTextColor.getDefaultColor(), 150));
+            }
+
+            // onclick
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mChipsInput.addChips(chip.getChips());
+                }
+            });
+        }
+    }
+
+    private class ChipItemViewHolder extends RecyclerView.ViewHolder {
+
+        private CheckBox checkBox;
         private CircleImageView mAvatar;
         private TextView mLabel;
         private TextView mInfo;
 
-        ItemViewHolder(View view) {
+        ChipItemViewHolder(View view) {
             super(view);
+            checkBox = (CheckBox) view.findViewById(R.id.selected);
             mAvatar = (CircleImageView) view.findViewById(R.id.avatar);
             mLabel = (TextView) view.findViewById(R.id.label);
             mInfo = (TextView) view.findViewById(R.id.info);
         }
+
+        public void bindInfo(final ChipInterface chip, final int position) {
+            //selectable
+            if (mSelectable) {
+                boolean contains = mSelectableItems.contains(chip);
+                checkBox.setChecked(contains);
+                checkBox.setVisibility(View.VISIBLE);
+            } else {
+                checkBox.setVisibility(GONE);
+            }
+
+            // avatar
+            ChipUtil.addAvatar(mAvatar, chip, mLetterTileProvider, mChipsInput.chipHasAvatarIcon());
+
+            // label
+            mLabel.setText(chip.getLabel());
+
+            // info
+            if (chip.getInfo() != null) {
+                mInfo.setVisibility(View.VISIBLE);
+                mInfo.setText(chip.getInfo());
+            } else {
+                mInfo.setVisibility(GONE);
+            }
+
+            // colors
+            if (mBackgroundColor != null)
+                itemView.getBackground().setColorFilter(mBackgroundColor.getDefaultColor(), PorterDuff.Mode.SRC_ATOP);
+            if (mTextColor != null) {
+                mLabel.setTextColor(mTextColor);
+                mInfo.setTextColor(ColorUtil.alpha(mTextColor.getDefaultColor(), 150));
+            }
+
+            // onclick
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mSelectable) {
+                        mSelectableItems.add(chip);
+                        notifyItemChanged(position);
+                    } else {
+                        if (mChipsInput != null)
+                            mChipsInput.addChip(chip);
+                    }
+                }
+            });
+        }
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        final ChipInterface chip = getItem(position);
+        if (chip.getId() == MergedChip.ID_MERGED_CHIP) {
+            return TYPE_MERGED_CHIP;
+        }
+        return TYPE_CHIP;
     }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.item_list_filterable, parent, false);
-        return new ItemViewHolder(view);
+        switch (viewType) {
+            case TYPE_MERGED_CHIP:
+                return new MergedChipItemViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_list_filterable_merged, parent, false));
+            default:
+                return new ChipItemViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_list_filterable, parent, false));
+        }
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        ItemViewHolder itemViewHolder = (ItemViewHolder) holder;
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         final ChipInterface chip = getItem(position);
+        if (chip.getId() == MergedChip.ID_MERGED_CHIP) {
+            MergedChipItemViewHolder itemViewHolder = (MergedChipItemViewHolder) holder;
+            itemViewHolder.bindInfo((MergedChip) chip);
+        } else {
+            ChipItemViewHolder itemViewHolder = (ChipItemViewHolder) holder;
+            itemViewHolder.bindInfo(chip, position);
+        }
+    }
 
-        // avatar
-        if(mChipsInput.chipHasAvatarIcon() && chip.getAvatarUri() != null) {
-            itemViewHolder.mAvatar.setVisibility(View.VISIBLE);
-            itemViewHolder.mAvatar.setImageURI(chip.getAvatarUri());
-        }
-        else if(mChipsInput.chipHasAvatarIcon() && chip.getAvatarDrawable() != null) {
-            itemViewHolder.mAvatar.setVisibility(View.VISIBLE);
-            itemViewHolder.mAvatar.setImageDrawable(chip.getAvatarDrawable());
-        }
-        else if(mChipsInput.chipHasAvatarIcon()) {
-            itemViewHolder.mAvatar.setVisibility(View.VISIBLE);
-            itemViewHolder.mAvatar.setImageBitmap(mLetterTileProvider.getLetterTile(chip.getLabel()));
-        }
-        else {
-            itemViewHolder.mAvatar.setVisibility(GONE);
-        }
-
-        // label
-        itemViewHolder.mLabel.setText(chip.getLabel());
-
-        // info
-        if(chip.getInfo() != null) {
-            itemViewHolder.mInfo.setVisibility(View.VISIBLE);
-            itemViewHolder.mInfo.setText(chip.getInfo());
-        }
-        else {
-            itemViewHolder.mInfo.setVisibility(GONE);
-        }
-
-        // colors
-        if(mBackgroundColor != null)
-            itemViewHolder.itemView.getBackground().setColorFilter(mBackgroundColor.getDefaultColor(), PorterDuff.Mode.SRC_ATOP);
-        if(mTextColor != null) {
-            itemViewHolder.mLabel.setTextColor(mTextColor);
-            itemViewHolder.mInfo.setTextColor(ColorUtil.alpha(mTextColor.getDefaultColor(), 150));
-        }
-
-        // onclick
-        itemViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(mChipsInput != null)
-                    mChipsInput.addChip(chip);
+    public void addMergedChipItem() {
+        boolean hasMergedChip = false;
+        for (ChipInterface chipInterface : mFilteredList) {
+            if (chipInterface.getId() == MergedChip.ID_MERGED_CHIP) {
+                hasMergedChip = true;
+                break;
             }
-        });
+        }
+        if (!hasMergedChip) {
+            mFilteredList.add(0, new MergedChip(mContext, mOriginalList));
+            notifyItemInserted(0);
+        }
     }
 
     @Override
@@ -187,7 +284,7 @@ public class FilterableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public Filter getFilter() {
-        if(mFilter == null)
+        if (mFilter == null)
             mFilter = new ChipFilter(this, mChipList);
         return mFilter;
     }
@@ -216,13 +313,11 @@ public class FilterableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 for (ChipInterface chip : originalList) {
                     if (chip.getLabel().toLowerCase().contains(filterPattern)) {
                         filteredList.add(chip);
-                    }
-                    else if(chip.getInfo() != null && chip.getInfo().toLowerCase().replaceAll("\\s", "").contains(filterPattern)) {
+                    } else if (chip.getInfo() != null && chip.getInfo().toLowerCase().replaceAll("\\s", "").contains(filterPattern)) {
                         filteredList.add(chip);
                     }
                 }
             }
-
             results.values = filteredList;
             results.count = filteredList.size();
             return results;
@@ -242,14 +337,14 @@ public class FilterableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             mFilteredList.remove(position);
 
         position = mChipList.indexOf(chip);
-        if(position >= 0)
+        if (position >= 0)
             mChipList.remove(position);
 
         notifyDataSetChanged();
     }
 
     private void addChip(ChipInterface chip) {
-        if(contains(chip)) {
+        if (contains(chip)) {
             mChipList.add(chip);
             mFilteredList.add(chip);
             // sort original list
@@ -262,8 +357,8 @@ public class FilterableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     private boolean contains(ChipInterface chip) {
-        for(ChipInterface item: mOriginalList) {
-            if(item.equals(chip))
+        for (ChipInterface item : mOriginalList) {
+            if (item.equals(chip))
                 return true;
         }
         return false;

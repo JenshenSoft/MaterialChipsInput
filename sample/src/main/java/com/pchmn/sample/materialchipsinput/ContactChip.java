@@ -12,6 +12,7 @@ public class ContactChip implements ChipInterface {
     private Uri avatarUri;
     private String name;
     private String phoneNumber;
+    private boolean selected;
 
     public ContactChip(String id, Uri avatarUri, String name, String phoneNumber) {
         this.id = id;
@@ -43,5 +44,15 @@ public class ContactChip implements ChipInterface {
     @Override
     public String getInfo() {
         return phoneNumber;
+    }
+
+    @Override
+    public boolean isSelected() {
+        return selected;
+    }
+
+    @Override
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 }

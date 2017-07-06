@@ -13,6 +13,7 @@ public class Chip implements ChipInterface {
     private Drawable avatarDrawable;
     private String label;
     private String info;
+    private boolean selected;
 
     public Chip(@NonNull Object id, @Nullable Uri avatarUri, @NonNull String label, @Nullable String info) {
         this.id = id;
@@ -74,5 +75,15 @@ public class Chip implements ChipInterface {
     @Override
     public String getInfo() {
         return info;
+    }
+
+    @Override
+    public boolean isSelected() {
+        return selected;
+    }
+
+    @Override
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 }

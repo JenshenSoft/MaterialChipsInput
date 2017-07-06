@@ -33,11 +33,13 @@ public class FilterableListView extends RelativeLayout {
     private static final String TAG = FilterableListView.class.toString();
     private Context mContext;
     // list
-    @BindView(R2.id.recycler_view) RecyclerView mRecyclerView;
+    @BindView(R2.id.recycler_view)
+    RecyclerView mRecyclerView;
     private FilterableAdapter mAdapter;
     private List<? extends ChipInterface> mFilterableList;
     // others
     private ChipsInput mChipsInput;
+    private boolean mFilterableListAddAllButtonEnable;
 
     public FilterableListView(Context context) {
         super(context);
@@ -58,14 +60,20 @@ public class FilterableListView extends RelativeLayout {
         setVisibility(GONE);
     }
 
-    public void build(List<? extends ChipInterface> filterableList, ChipsInput chipsInput, ColorStateList backgroundColor, ColorStateList textColor) {
+    public void build(List<? extends ChipInterface> filterableList,
+                      ChipsInput chipsInput,
+                      ColorStateList backgroundColor,
+                      ColorStateList textColor,
+                      boolean mFilterableListSelectable,
+                      boolean mFilterableListAddAllButtonEnable) {
         mFilterableList = filterableList;
         mChipsInput = chipsInput;
+        this.mFilterableListAddAllButtonEnable = mFilterableListAddAllButtonEnable;
 
         // adapter
-        mAdapter = new FilterableAdapter(mContext, mRecyclerView, filterableList, chipsInput, backgroundColor, textColor);
+        mAdapter = new FilterableAdapter(mContext, mRecyclerView, filterableList, chipsInput, backgroundColor, textColor, mFilterableListSelectable);
         mRecyclerView.setAdapter(mAdapter);
-        if(backgroundColor != null)
+        if (backgroundColor != null)
             mRecyclerView.getBackground().setColorFilter(backgroundColor.getDefaultColor(), PorterDuff.Mode.SRC_ATOP);
 
         // listen to change in the tree
@@ -85,7 +93,7 @@ public class FilterableListView extends RelativeLayout {
                 layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
                 layoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
 
-                if(mContext.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+                if (mContext.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
                     layoutParams.bottomMargin = ViewUtil.getNavBarHeight(mContext);
                 }
 
@@ -105,23 +113,25 @@ public class FilterableListView extends RelativeLayout {
     }
 
     public void filterList(CharSequence text) {
-        mAdapter.getFilter().filter(text, new Filter.FilterListener() {
-            @Override
-            public void onFilterComplete(int count) {
-                // show if there are results
-                if(mAdapter.getItemCount() > 0)
-                    fadeIn();
-                else
-                    fadeOut();
-            }
-        });
+        mAdapter.getFilter()
+                .filter(text, new Filter.FilterListener() {
+                    @Override
+                    public void onFilterComplete(int count) {
+                        // show if there are results
+                        if (mAdapter.getItemCount() > 0) {
+                            fadeIn();
+                        } else {
+                            fadeOut();
+                        }
+                    }
+                });
     }
 
     /**
      * Fade in
      */
     public void fadeIn() {
-        if(getVisibility() == VISIBLE)
+        if (getVisibility() == VISIBLE)
             return;
 
         // get visible window (keyboard shown)
@@ -141,13 +151,17 @@ public class FilterableListView extends RelativeLayout {
         anim.setDuration(200);
         startAnimation(anim);
         setVisibility(VISIBLE);
+
+        if (mFilterableListAddAllButtonEnable && mAdapter.getItemCount() > 1) {
+            mAdapter.addMergedChipItem();
+        }
     }
 
     /**
      * Fade out
      */
     public void fadeOut() {
-        if(getVisibility() == GONE)
+        if (getVisibility() == GONE)
             return;
 
         AlphaAnimation anim = new AlphaAnimation(1.0f, 0.0f);

@@ -25,9 +25,14 @@ import butterknife.ButterKnife;
 public class ContactListActivity extends AppCompatActivity {
 
     private static final String TAG = ContactListActivity.class.toString();
-    @BindView(R.id.chips_input) ChipsInput mChipsInput;
-    @BindView(R.id.validate) Button mValidateButton;
-    @BindView(R.id.chip_list) TextView mChipListText;
+    @BindView(R.id.chips_input)
+    ChipsInput mChipsInput;
+    @BindView(R.id.validate)
+    Button mValidateButton;
+    @BindView(R.id.show)
+    Button mShowButton;
+    @BindView(R.id.chip_list)
+    TextView mChipListText;
     private List<ContactChip> mContactList;
 
     @Override
@@ -42,7 +47,7 @@ public class ContactListActivity extends AppCompatActivity {
         new RxPermissions(this)
                 .request(Manifest.permission.READ_CONTACTS)
                 .subscribe(granted -> {
-                    if(granted && mContactList.size() == 0)
+                    if (granted && mContactList.size() == 0)
                         getContactList();
 
                 }, err -> {
@@ -74,12 +79,15 @@ public class ContactListActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String listString = "";
-                for(ContactChip chip: (List<ContactChip>)  mChipsInput.getSelectedChipList()) {
-                    listString += chip.getLabel() + " (" + (chip.getInfo() != null ? chip.getInfo(): "") + ")" + ", ";
+                for (ContactChip chip : (List<ContactChip>) mChipsInput.getSelectedChipList()) {
+                    listString += chip.getLabel() + " (" + (chip.getInfo() != null ? chip.getInfo() : "") + ")" + ", ";
                 }
 
                 mChipListText.setText(listString);
             }
+        });
+        mShowButton.setOnClickListener(v -> {
+            mChipsInput.showAllChips();
         });
     }
 
@@ -88,10 +96,10 @@ public class ContactListActivity extends AppCompatActivity {
      * And finally pass the mContactList to the mChipsInput
      */
     private void getContactList() {
-        Cursor phones = this.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, null,null,null, null);
+        Cursor phones = this.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
 
         // loop over all contacts
-        if(phones != null) {
+        if (phones != null) {
             while (phones.moveToNext()) {
                 // get contact info
                 String phoneNumber = null;
@@ -99,14 +107,14 @@ public class ContactListActivity extends AppCompatActivity {
                 String name = phones.getString(phones.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
                 String avatarUriString = phones.getString(phones.getColumnIndex(ContactsContract.Contacts.PHOTO_THUMBNAIL_URI));
                 Uri avatarUri = null;
-                if(avatarUriString != null)
+                if (avatarUriString != null)
                     avatarUri = Uri.parse(avatarUriString);
 
                 // get phone number
                 if (Integer.parseInt(phones.getString(phones.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
                     Cursor pCur = this.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                             null,
-                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[] { id }, null);
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{id}, null);
 
                     while (pCur != null && pCur.moveToNext()) {
                         phoneNumber = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
@@ -121,6 +129,9 @@ public class ContactListActivity extends AppCompatActivity {
                 mContactList.add(contactChip);
             }
             phones.close();
+        }
+        for (int i = 0; i < 4; i++) {
+            mContactList.add(new ContactChip(String.valueOf(i), null, "test" + i, "234896"));
         }
 
         // pass contact list to chips input

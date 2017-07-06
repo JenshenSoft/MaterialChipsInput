@@ -12,6 +12,9 @@
         android:id="@+id/chips_input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:chip_deletable="true"
+        app:filterable_list_selectable="false"
+        app:filterable_list_AddAllButton_enable="true"
         app:hint="Enter a name"
         app:maxRows="3" />
 
@@ -21,6 +24,13 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Validate"/>
+
+    <Button
+        android:id="@+id/show"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="show"/>
 
     <TextView
         android:id="@+id/chip_list"
