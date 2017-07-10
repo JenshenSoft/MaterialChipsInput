@@ -19,7 +19,8 @@ import com.pchmn.materialchips.ChipView;
 import com.pchmn.materialchips.ChipsInput;
 import com.pchmn.materialchips.R;
 import com.pchmn.materialchips.adapter.EditTextViewHolder;
-import com.pchmn.materialchips.adapter.ItemViewHolder;
+import com.pchmn.materialchips.adapter.chips.holders.CollapseItemsViewHolder;
+import com.pchmn.materialchips.adapter.chips.holders.ItemViewHolder;
 import com.pchmn.materialchips.adapter.chips.items.ChipItem;
 import com.pchmn.materialchips.adapter.chips.items.CollapseButtonItem;
 import com.pchmn.materialchips.adapter.chips.items.EditChipItem;
@@ -65,7 +66,13 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     @Override
     public long getItemId(int position) {
-        return mChipList.get(position).hashCode();
+        Item item = mChipList.get(position);
+        switch (item.getType()) {
+            case TYPE_ITEM:
+                return ((ChipItem) item).getChip().getId().hashCode();
+            default:
+                return item.getType();
+        }
     }
 
     @Override
@@ -114,7 +121,15 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
     }
 
-    public List<ChipInterface> getChipList() {
+    public List<ChipInterface> getSelectedChipList() {
+        List<ChipInterface> chips = getShowedChipList();
+        if (collapseButtonItem != null && collapseButtonItem.isCollapsed() && collapseButtonItem.getItems() != null) {
+            chips.addAll(collapseButtonItem.getItems());
+        }
+        return chips;
+    }
+
+    public List<ChipInterface> getShowedChipList() {
         List<ChipInterface> chips = new ArrayList<>();
         for (Item chipItem : mChipList) {
             if (chipItem.getType() == TYPE_ITEM) {
@@ -125,7 +140,7 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     public void addChip(ChipInterface chip) {
-        if (!listContains(getChipList(), chip)) {
+        if (!listContains(getShowedChipList(), chip)) {
             mChipList.add(new ChipItem(chip));
             // notify listener
             mChipsInput.onChipAdded(chip, mChipList.size());
@@ -135,9 +150,11 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             mEditText.setText(null);
             // refresh data
             mChipList.remove(editChipItem);
-            if (collapseButtonItem != null && getChipList().size() > 1) {
+            if (collapseButtonItem != null) {
                 mChipList.remove(collapseButtonItem);
-                mChipList.add(collapseButtonItem);
+                if (collapseButtonItem.isCollapsed() && getSelectedChipList().size() > 1) {
+                    mChipList.add(collapseButtonItem);
+                }
             }
             mChipList.add(editChipItem);
             notifyDataSetChanged();
@@ -147,7 +164,7 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     public void addChips(List<ChipInterface> chips) {
         boolean added = false;
         for (ChipInterface chip : chips) {
-            List<ChipInterface> chipList = getChipList();
+            List<ChipInterface> chipList = getSelectedChipList();
             if (!listContains(chipList, chip)) {
                 added = true;
                 mChipList.add(new ChipItem(chip));
@@ -164,7 +181,7 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         mEditText.setText(null);
         // refresh data
         mChipList.remove(editChipItem);
-        if (collapseButtonItem != null && getChipList().size() > 1) {
+        if (collapseButtonItem != null && getSelectedChipList().size() > 1) {
             mChipList.remove(collapseButtonItem);
             mChipList.add(collapseButtonItem);
         }
@@ -177,16 +194,50 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     public void removeChipById(Object id) {
-        int position = mChipList.indexOf(getChipItem(id));
+        ChipItem chipItem = getChipItem(id);
+        int position = mChipList.indexOf(chipItem);
         mChipList.remove(position);
-        // notify listener
-        notifyItemRangeChanged(position, getItemCount());
         // if 0 chip
         if (mChipList.isEmpty()) {
             mEditText.setHint(mHintLabel);
         }
+        //remove chips from collapsed item
+        if (collapseButtonItem != null) {
+            if (chipItem != null) {
+                removeChipFromCollapsedItem(chipItem.getChip(), collapseButtonItem);
+            }
+            List<ChipInterface> chipList = getSelectedChipList();
+            if (collapseButtonItem.isCollapsed()
+                    && collapseButtonItem.getItems() != null
+                    && collapseButtonItem.getItems().size() >= 1) {
+                int positionCollapseItem = mChipList.indexOf(collapseButtonItem);
+                if (positionCollapseItem == 0) {
+                    ChipInterface firstChip = collapseButtonItem.getItems().iterator().next();
+                    removeChipFromCollapsedItem(firstChip, collapseButtonItem);
+                    addChip(firstChip);
+                }
+            } else if (chipList.size() <= 1) {
+                mChipList.remove(collapseButtonItem);
+            }
+        }
         // refresh data
         notifyDataSetChanged();
+    }
+
+    private void removeChipFromCollapsedItem(ChipInterface chip, CollapseButtonItem collapseButtonItem) {
+        List<ChipInterface> chipInterfaces = collapseButtonItem.getItems();
+        if (chipInterfaces != null) {
+            ChipInterface chipToRemoveInterface = null;
+            for (ChipInterface chipInterface : chipInterfaces) {
+                if (chip.getId().equals(chipInterface.getId())) {
+                    chipToRemoveInterface = chipInterface;
+                    break;
+                }
+            }
+            if (chipToRemoveInterface != null) {
+                chipInterfaces.remove(chipToRemoveInterface);
+            }
+        }
     }
 
     /* private methods */
@@ -277,7 +328,7 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 if (event.getAction() == KeyEvent.ACTION_DOWN
                         && event.getKeyCode() == KeyEvent.KEYCODE_DEL) {
                     // remove last chip
-                    List<ChipInterface> chipList = getChipList();
+                    List<ChipInterface> chipList = getSelectedChipList();
                     if (!chipList.isEmpty() && mEditText.getText().toString().length() == 0) {
                         removeChip(chipList.get(chipList.size() - 1));
                     }
@@ -391,18 +442,21 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 collapseButtonItem.setCollapsed(!collapseButtonItem.isCollapsed());
                 if (collapseButtonItem.isCollapsed()) {
                     List<ChipInterface> chipItems = new ArrayList<>();
-                    List<ChipInterface> chipList = getChipList();
+                    List<ChipInterface> chipList = getSelectedChipList();
                     for (int i = 1; i < chipList.size(); i++) {
                         ChipInterface chipInterface = chipList.get(i);
                         ChipItem chipItem = getChipItem(chipInterface.getId());
-                        mChipList.remove(chipItem);
-                        chipItems.add(chipItem.getChip());
+                        if (chipItem != null) {
+                            mChipList.remove(chipItem);
+                            chipItems.add(chipItem.getChip());
+                        }
                     }
                     if (!chipItems.isEmpty()) {
                         collapseButtonItem.setItems(chipItems);
                     }
                 } else {
                     addChips(collapseButtonItem.getItems());
+                    collapseButtonItem.setItems(null);
                 }
                 notifyDataSetChanged();
             }

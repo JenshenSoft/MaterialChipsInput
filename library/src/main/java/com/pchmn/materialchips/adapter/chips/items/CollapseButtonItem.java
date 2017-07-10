@@ -1,5 +1,7 @@
 package com.pchmn.materialchips.adapter.chips.items;
 
+import android.support.annotation.Nullable;
+
 import com.pchmn.materialchips.model.ChipInterface;
 
 import java.util.List;
@@ -26,6 +28,7 @@ public class CollapseButtonItem implements Item {
         this.items = items;
     }
 
+    @Nullable
     public List<ChipInterface> getItems() {
         return items;
     }

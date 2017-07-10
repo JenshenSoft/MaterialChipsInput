@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
@@ -7,36 +7,42 @@
     android:layout_height="match_parent"
     android:padding="16dp"
     tools:context="com.pchmn.sample.materialchipsinput.ContactListActivity">
-
-    <com.pchmn.materialchips.ChipsInput
-        android:id="@+id/chips_input"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:chip_deletable="true"
-        app:filterable_list_selectable="false"
-        app:filterable_list_AddAllButton_enable="true"
-        app:collapsedButton_enable="true"
-        app:hint="Enter a name"
-        app:maxRows="10" />
+        android:orientation="vertical"
+        android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/validate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Validate"/>
+        <com.pchmn.materialchips.ChipsInput
+            android:id="@+id/chips_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:chip_deletable="true"
+            app:filterable_list_selectable="false"
+            app:filterable_list_AddAllButton_enable="true"
+            app:collapsedButton_enable="true"
+            app:hint="Enter a name"
+            app:maxRows="10" />
 
-    <Button
-        android:id="@+id/show"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="show"/>
+        <Button
+            android:id="@+id/validate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            android:text="Validate"/>
 
-    <TextView
-        android:id="@+id/chip_list"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"/>
+        <Button
+            android:id="@+id/show"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="show"/>
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/chip_list"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"/>
+    </LinearLayout>
+
+</ScrollView>
