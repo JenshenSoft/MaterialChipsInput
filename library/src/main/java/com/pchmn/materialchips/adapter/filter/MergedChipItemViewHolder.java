@@ -14,6 +14,7 @@ import com.pchmn.materialchips.util.ColorUtil;
 import com.pchmn.materialchips.util.LetterTileProvider;
 
 import java.util.Iterator;
+import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -50,13 +51,28 @@ public class MergedChipItemViewHolder extends RecyclerView.ViewHolder {
 
     public void bindInfo(final MergedChip chip, View.OnClickListener onClickListener) {
         // avatar
-        Iterator<ChipInterface> chipInterfaces = chip.getChips().subList(0, 3).iterator();
-        ChipInterface nextChip = chipInterfaces.next();
-        ChipUtil.addAvatar(mAvatar0, nextChip, letterTileProvider, hasAvatarIcon);
-        nextChip = chipInterfaces.next();
-        ChipUtil.addAvatar(mAvatar1, nextChip, letterTileProvider, hasAvatarIcon);
-        nextChip = chipInterfaces.next();
-        ChipUtil.addAvatar(mAvatar2, nextChip, letterTileProvider, hasAvatarIcon);
+        List<ChipInterface> chips = chip.getChips();
+        Iterator<ChipInterface> chipInterfaces = chips.iterator();
+        int size = chips.size();
+        if (size >= 3) {
+            ChipInterface nextChip = chipInterfaces.next();
+            ChipUtil.addAvatar(mAvatar0, nextChip, letterTileProvider, hasAvatarIcon);
+            nextChip = chipInterfaces.next();
+            ChipUtil.addAvatar(mAvatar1, nextChip, letterTileProvider, hasAvatarIcon);
+            nextChip = chipInterfaces.next();
+            ChipUtil.addAvatar(mAvatar2, nextChip, letterTileProvider, hasAvatarIcon);
+        } else if (size >= 2) {
+            ChipInterface nextChip = chipInterfaces.next();
+            ChipUtil.addAvatar(mAvatar0, nextChip, letterTileProvider, hasAvatarIcon);
+            nextChip = chipInterfaces.next();
+            ChipUtil.addAvatar(mAvatar2, nextChip, letterTileProvider, hasAvatarIcon);
+            mAvatar1.setVisibility(GONE);
+        }else if (size >= 1) {
+            ChipInterface nextChip = chipInterfaces.next();
+            ChipUtil.addAvatar(mAvatar1, nextChip, letterTileProvider, hasAvatarIcon);
+            mAvatar0.setVisibility(GONE);
+            mAvatar2.setVisibility(GONE);
+        }
 
         // label
         mLabel.setText(chip.getLabel());

@@ -81,7 +81,6 @@ public class FilterableListView extends RelativeLayout {
 
             @Override
             public void onGlobalLayout() {
-
                 // position
                 ViewGroup rootView = (ViewGroup) mChipsInput.getRootView();
 
@@ -131,8 +130,10 @@ public class FilterableListView extends RelativeLayout {
      * Fade in
      */
     public void fadeIn() {
-        if (getVisibility() == VISIBLE)
+        if (getVisibility() == VISIBLE) {
+            addMegeredButton();
             return;
+        }
 
         // get visible window (keyboard shown)
         final View rootView = getRootView();
@@ -151,10 +152,7 @@ public class FilterableListView extends RelativeLayout {
         anim.setDuration(200);
         startAnimation(anim);
         setVisibility(VISIBLE);
-
-        if (mFilterableListAddAllButtonEnable && mAdapter.getItemCount() > 1) {
-            mAdapter.addMergedChipItem();
-        }
+        addMegeredButton();
     }
 
     /**
@@ -168,5 +166,11 @@ public class FilterableListView extends RelativeLayout {
         anim.setDuration(200);
         startAnimation(anim);
         setVisibility(GONE);
+    }
+
+    private void addMegeredButton() {
+        if (mFilterableListAddAllButtonEnable && mAdapter.getItemCount() > 1) {
+            mAdapter.addMergedChipItem();
+        }
     }
 }

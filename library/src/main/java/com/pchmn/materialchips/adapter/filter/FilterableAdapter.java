@@ -100,8 +100,6 @@ public class FilterableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         });
     }
 
-
-
     @Override
     public int getItemViewType(int position) {
         final ChipInterface chip = getItem(position);
@@ -169,7 +167,7 @@ public class FilterableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             }
         }
         if (!hasMergedChip) {
-            mFilteredList.add(0, new MergedChip(mContext, mOriginalList));
+            mFilteredList.add(0, new MergedChip(mContext, mFilteredList));
             notifyItemInserted(0);
         }
     }
@@ -208,7 +206,7 @@ public class FilterableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             filteredList.clear();
             FilterResults results = new FilterResults();
             if (constraint.length() == 0) {
-                filteredList.addAll(originalList);
+                filteredList.addAll(new ArrayList<>(originalList));
             } else {
                 final String filterPattern = constraint.toString().toLowerCase().trim();
                 for (ChipInterface chip : originalList) {
@@ -227,7 +225,8 @@ public class FilterableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         @Override
         protected void publishResults(CharSequence constraint, FilterResults results) {
             mFilteredList.clear();
-            mFilteredList.addAll((ArrayList<ChipInterface>) results.values);
+            List<ChipInterface> values = new ArrayList<>((ArrayList<ChipInterface>) results.values);
+            mFilteredList.addAll(values);
             notifyDataSetChanged();
         }
     }

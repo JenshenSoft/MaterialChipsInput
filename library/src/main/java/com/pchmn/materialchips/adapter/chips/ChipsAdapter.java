@@ -18,7 +18,7 @@ import android.widget.RelativeLayout;
 import com.pchmn.materialchips.ChipView;
 import com.pchmn.materialchips.ChipsInput;
 import com.pchmn.materialchips.R;
-import com.pchmn.materialchips.adapter.EditTextViewHolder;
+import com.pchmn.materialchips.adapter.chips.holders.EditTextViewHolder;
 import com.pchmn.materialchips.adapter.chips.holders.CollapseItemsViewHolder;
 import com.pchmn.materialchips.adapter.chips.holders.ItemViewHolder;
 import com.pchmn.materialchips.adapter.chips.items.ChipItem;
@@ -194,9 +194,13 @@ public class ChipsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     public void removeChipById(Object id) {
-        ChipItem chipItem = getChipItem(id);
-        int position = mChipList.indexOf(chipItem);
-        mChipList.remove(position);
+        //remove chip
+       final ChipItem chipItem = getChipItem(id);
+        if (chipItem != null) {
+            int position = mChipList.indexOf(chipItem);
+            mChipList.remove(position);
+            mChipsInput.onChipRemoved(chipItem.getChip(), position);
+        }
         // if 0 chip
         if (mChipList.isEmpty()) {
             mEditText.setHint(mHintLabel);
